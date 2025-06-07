@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Computing Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .quiz-title {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .question-counter {
+            color: #666;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option.correct {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .option.incorrect {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .feedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-next {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-next:hover {
+            background: #5a67d8;
+        }
+
+        .btn-next:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-quit {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-quit:hover {
+            background: #c82333;
+        }
+
+        .results {
+            text-align: center;
+            display: none;
+        }
+
+        .score {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .score-text {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .restart-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .restart-btn:hover {
+            background: #218838;
+        }
+
+        @media (max-width: 480px) {
+            .quiz-container {
+                padding: 20px;
+            }
+            
+            .quiz-title {
+                font-size: 1.5rem;
+            }
+            
+            .question {
+                font-size: 1.1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1 class="quiz-title">Smart Computing Quiz - Supplementary study material prepared by Prof. Rahul M. Samant</h1>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div id="quizContent">
+            <div class="question-counter" id="questionCounter">Question 1 of 20</div>
+            <div class="question" id="questionText"></div>
+            <div class="options" id="optionsContainer"></div>
+            <div class="feedback" id="feedback"></div>
+            <div class="controls">
+                <button class="btn btn-quit" onclick="quitQuiz()">Quit</button>
+                <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()" disabled>Next</button>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="score" id="finalScore">0/20</div>
+            <div class="score-text" id="scoreText">Great job!</div>
+            <button class="btn restart-btn" onclick="restartQuiz()">Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "What does GSM stand for in mobile communications?",
+                options: [
+                    "Global System for Mobile communications",
+                    "General System for Mobiles",
+                    "Global Standard Mobile",
+                    "General Standard for Mobile"
+                ],
+                correct: 0,
+                difficulty: "basic"
+            },
+            {
+                question: "Which generation of mobile technology introduced data services?",
+                options: [
+                    "1G",
+                    "2G",
+                    "3G",
+                    "4G"
+                ],
+                correct: 1,
+                difficulty: "basic"
+            },
+            {
+                question: "What is the primary advantage of 4G over 3G?",
+                options: [
+                    "Better voice quality",
+                    "Lower cost",
+                    "Higher data speeds",
+                    "Longer battery life"
+                ],
+                correct: 2,
+                difficulty: "basic"
+            },
+            {
+                question: "What does Wi-Fi stand for?",
+                options: [
+                    "Wireless Fidelity",
+                    "Wireless Frequency",
+                    "Wide Fidelity",
+                    "It doesn't stand for anything specific"
+                ],
+                correct: 3,
+                difficulty: "basic"
+            },
+   {
+        question: "What is the primary characteristic that defines mobile computing?",
+        options: [
+            "High processing power",
+            "Portability and wireless connectivity",
+            "Large screen size",
+            "Low cost"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which component is essential for mobile computing devices to connect to cellular networks?",
+        options: [
+            "Wi-Fi chip",
+            "Bluetooth module",
+            "Cellular modem",
+            "GPS receiver"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What does PDA stand for in mobile computing history?",
+        options: [
+            "Personal Digital Assistant",
+            "Portable Data Access",
+            "Personal Device Application",
+            "Portable Digital Assistant"
+        ],
+        correct: 0,
+        difficulty: "basic"
+    },
+    {
+        question: "Which of the following is NOT a constraint of mobile computing?",
+        options: [
+            "Limited battery life",
+            "Small screen size",
+            "High processing power",
+            "Limited memory"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the main advantage of using cloud services in mobile computing?",
+        options: [
+            "Reduced device cost",
+            "Offloading computation and storage",
+            "Better graphics performance",
+            "Improved battery life"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which technology enables mobile devices to determine their location?",
+        options: [
+            "Wi-Fi",
+            "Bluetooth",
+            "GPS",
+            "NFC"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the primary function of a mobile operating system?",
+        options: [
+            "Providing internet access",
+            "Managing hardware and software resources",
+            "Displaying graphics",
+            "Storing user data"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which of the following is a key feature of mobile applications?",
+        options: [
+            "High memory usage",
+            "Complex user interfaces",
+            "Touch-based interaction",
+            "Wired connectivity"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What does ubiquitous computing refer to?",
+        options: [
+            "Computing only on mobile devices",
+            "Computing everywhere and invisible to users",
+            "High-performance computing",
+            "Gaming-focused computing"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which factor most affects the usability of mobile applications?",
+        options: [
+            "Processing speed",
+            "User interface design",
+            "Storage capacity",
+            "Network speed"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the primary challenge in mobile device battery management?",
+        options: [
+            "High cost of batteries",
+            "Limited charging options",
+            "Balancing performance and power consumption",
+            "Battery size constraints"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "Which technology allows mobile devices to communicate over short distances?",
+        options: [
+            "Cellular networks",
+            "Satellite communication",
+            "Bluetooth",
+            "Wi-Fi"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the main purpose of mobile middleware?",
+        options: [
+            "Providing user interfaces",
+            "Managing hardware resources",
+            "Facilitating communication between applications and services",
+            "Storing application data"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "Which of the following is a common mobile device input method?",
+        options: [
+            "Keyboard and mouse",
+            "Touch screen",
+            "Joystick",
+            "Trackball only"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the primary benefit of mobile computing for businesses?",
+        options: [
+            "Reduced hardware costs",
+            "Increased employee mobility and productivity",
+            "Better graphics capabilities",
+            "Lower software licensing fees"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which component is responsible for processing graphics on mobile devices?",
+        options: [
+            "CPU",
+            "RAM",
+            "GPU",
+            "Storage"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What does context-aware computing in mobile devices refer to?",
+        options: [
+            "High-speed processing",
+            "Adapting behavior based on user's situation",
+            "Multiple application support",
+            "Cloud-based processing"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which of the following is a key security concern in mobile computing?",
+        options: [
+            "Slow processing speed",
+            "Data breaches and privacy issues",
+            "Large file sizes",
+            "Complex user interfaces"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the primary advantage of using mobile web applications?",
+        options: [
+            "Better performance than native apps",
+            "Platform independence",
+            "Lower development costs",
+            "Offline functionality"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which technology enables mobile devices to make contactless payments?",
+        options: [
+            "Bluetooth",
+            "Wi-Fi",
+            "NFC",
+            "GPS"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the main characteristic of thin client computing in mobile devices?",
+        options: [
+            "High local processing power",
+            "Minimal local processing, server-dependent",
+            "Large local storage",
+            "Independent operation"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which of the following best describes mobile device synchronization?",
+        options: [
+            "Backing up device data",
+            "Keeping data consistent across devices",
+            "Installing software updates",
+            "Optimizing device performance"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the primary purpose of mobile device management (MDM)?",
+        options: [
+            "Developing mobile applications",
+            "Managing and securing mobile devices in organizations",
+            "Optimizing device performance",
+            "Providing user support"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which factor is most important for mobile application performance?",
+        options: [
+            "Color scheme",
+            "Response time and efficiency",
+            "Number of features",
+            "Application size"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "What does BYOD stand for in mobile computing?",
+        options: [
+            "Bring Your Own Device",
+            "Build Your Own Database",
+            "Buy Your Own Device",
+            "Backup Your Own Data"
+        ],
+        correct: 0,
+        difficulty: "basic"
+    },
+
+    // Wireless Technologies (26-50)
+    {
+        question: "What does Wi-Fi stand for?",
+        options: [
+            "Wireless Fidelity",
+            "Wireless Frequency",
+            "Wide Fidelity",
+            "It's a trademark, not an acronym"
+        ],
+        correct: 3,
+        difficulty: "basic"
+    },
+    {
+        question: "Which Wi-Fi standard provides the highest data transfer rates?",
+        options: [
+            "802.11g",
+            "802.11n",
+            "802.11ac",
+            "802.11ax (Wi-Fi 6)"
+        ],
+        correct: 3,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the typical range of Bluetooth Low Energy (BLE)?",
+        options: [
+            "1-2 meters",
+            "10-20 meters",
+            "50-100 meters",
+            "200-300 meters"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which frequency band does Wi-Fi typically operate in?",
+        options: [
+            "900 MHz",
+            "1.8 GHz",
+            "2.4 GHz and 5 GHz",
+            "10 GHz"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the main advantage of Wi-Fi 6 over previous Wi-Fi standards?",
+        options: [
+            "Longer range",
+            "Lower power consumption",
+            "Better performance in crowded environments",
+            "Cheaper implementation"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which wireless technology has the shortest communication range?",
+        options: [
+            "Wi-Fi",
+            "Bluetooth",
+            "NFC",
+            "Zigbee"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What does MIMO stand for in wireless communications?",
+        options: [
+            "Multiple Input Multiple Output",
+            "Mobile Internet Mobile Operation",
+            "Modular Input Modular Output",
+            "Maximum Input Maximum Output"
+        ],
+        correct: 0,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which Bluetooth version introduced Low Energy (LE) support?",
+        options: [
+            "Bluetooth 3.0",
+            "Bluetooth 4.0",
+            "Bluetooth 5.0",
+            "Bluetooth 2.1"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the primary purpose of WPA3 in Wi-Fi security?",
+        options: [
+            "Faster data transfer",
+            "Enhanced security and encryption",
+            "Better range coverage",
+            "Lower power consumption"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which wireless technology is commonly used for IoT devices due to low power consumption?",
+        options: [
+            "Wi-Fi",
+            "Bluetooth Classic",
+            "Zigbee",
+            "4G LTE"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the maximum theoretical data rate of 802.11ac?",
+        options: [
+            "54 Mbps",
+            "300 Mbps",
+            "1.3 Gbps",
+            "10 Gbps"
+        ],
+        correct: 2,
+        difficulty: "advanced"
+    },
+    {
+        question: "Which technology allows Wi-Fi devices to connect without a password using push-button configuration?",
+        options: [
+            "WPS (Wi-Fi Protected Setup)",
+            "WPA2",
+            "WEP",
+            "MAC filtering"
+        ],
+        correct: 0,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the typical power consumption difference between Bluetooth Classic and Bluetooth LE?",
+        options: [
+            "No significant difference",
+            "BLE uses 10-20% less power",
+            "BLE uses 50-90% less power",
+            "Classic uses less power"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which wireless standard is designed for wireless personal area networks (WPAN)?",
+        options: [
+            "IEEE 802.11",
+            "IEEE 802.15",
+            "IEEE 802.16",
+            "IEEE 802.3"
+        ],
+        correct: 1,
+        difficulty: "advanced"
+    },
+    {
+        question: "What is the primary benefit of beamforming in Wi-Fi technology?",
+        options: [
+            "Increased security",
+            "Lower power consumption",
+            "Improved signal strength and range",
+            "Faster authentication"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which NFC operating mode allows two devices to exchange data bidirectionally?",
+        options: [
+            "Reader/Writer mode",
+            "Peer-to-peer mode",
+            "Card emulation mode",
+            "Passive mode"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the maximum data transfer rate of NFC?",
+        options: [
+            "106 kbps",
+            "424 kbps",
+            "1 Mbps",
+            "10 Mbps"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which wireless technology uses spread spectrum techniques for communication?",
+        options: [
+            "NFC",
+            "Infrared",
+            "Bluetooth",
+            "Zigbee"
+        ],
+        correct: 2,
+        difficulty: "advanced"
+    },
+    {
+        question: "What is the primary advantage of mesh networking in wireless communications?",
+        options: [
+            "Higher data rates",
+            "Lower cost",
+            "Self-healing network topology",
+            "Better security"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which frequency band is commonly used by Zigbee in most countries?",
+        options: [
+            "900 MHz",
+            "2.4 GHz",
+            "5 GHz",
+            "6 GHz"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What does CSMA/CA stand for in wireless networking?",
+        options: [
+            "Carrier Sense Multiple Access with Collision Avoidance",
+            "Code Sense Multiple Access with Channel Allocation",
+            "Carrier Signal Multiple Access with Collision Avoidance",
+            "Channel Sense Multiple Access with Code Allocation"
+        ],
+        correct: 0,
+        difficulty: "advanced"
+    },
+    {
+        question: "Which wireless security protocol is considered most secure for modern Wi-Fi networks?",
+        options: [
+            "WEP",
+            "WPA",
+            "WPA2",
+            "WPA3"
+        ],
+        correct: 3,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the primary function of a wireless access point?",
+        options: [
+            "Amplify wireless signals",
+            "Provide internet connectivity to wireless devices",
+            "Encrypt wireless communications",
+            "Monitor network traffic"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which technology enables automatic switching between Wi-Fi and cellular data?",
+        options: [
+            "Wi-Fi Assist",
+            "Bluetooth handoff",
+            "NFC pairing",
+            "GPS switching"
+        ],
+        correct: 0,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the main disadvantage of using the 2.4 GHz band for Wi-Fi?",
+        options: [
+            "Limited range",
+            "High power consumption",
+            "Interference from other devices",
+            "Expensive equipment"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+
+    // Cellular Networks (51-75)
+    {
+        question: "What does GSM stand for?",
+        options: [
+            "Global System for Mobile communications",
+            "General System for Mobiles",
+            "Global Standard Mobile",
+            "General Standard for Mobile"
+        ],
+        correct: 0,
+        difficulty: "basic"
+    },
+    {
+        question: "Which generation of mobile networks first introduced digital voice transmission?",
+        options: [
+            "1G",
+            "2G",
+            "3G",
+            "4G"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the primary advantage of 4G LTE over 3G networks?",
+        options: [
+            "Better voice quality",
+            "Lower latency and higher data speeds",
+            "Longer battery life",
+            "Cheaper service plans"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which technology is the foundation of 5G networks?",
+        options: [
+            "CDMA",
+            "GSM",
+            "OFDMA and massive MIMO",
+            "TDMA"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What does CDMA stand for in cellular communications?",
+        options: [
+            "Code Division Multiple Access",
+            "Cellular Division Multiple Access",
+            "Channel Division Multiple Access",
+            "Carrier Division Multiple Access"
+        ],
+        correct: 0,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which cellular network generation introduced packet-switched data services?",
+        options: [
+            "2G",
+            "2.5G (GPRS)",
+            "3G",
+            "4G"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the typical latency of 5G networks compared to 4G?",
+        options: [
+            "Similar to 4G",
+            "10 times lower than 4G",
+            "2-3 times lower than 4G",
+            "Higher than 4G"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which frequency bands are commonly used for 5G networks?",
+        options: [
+            "Only sub-6 GHz",
+            "Only mmWave (24-100 GHz)",
+            "Both sub-6 GHz and mmWave",
+            "Only 2.4 GHz"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What does VoLTE stand for?",
+        options: [
+            "Voice over LTE",
+            "Video over LTE",
+            "Virtual over LTE",
+            "Voice on LTE"
+        ],
+        correct: 0,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which cellular technology allows for network slicing?",
+        options: [
+            "3G",
+            "4G LTE",
+            "5G",
+            "2G"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the primary benefit of carrier aggregation in LTE?",
+        options: [
+            "Better coverage",
+            "Lower power consumption",
+            "Increased data throughput",
+            "Improved voice quality"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which cellular standard is known as the first truly global mobile standard?",
+        options: [
+            "AMPS",
+            "GSM",
+            "CDMA",
+            "TDMA"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the maximum theoretical download speed of 4G LTE-Advanced?",
+        options: [
+            "100 Mbps",
+            "300 Mbps",
+            "1 Gbps",
+            "10 Gbps"
+        ],
+        correct: 2,
+        difficulty: "advanced"
+    },
+    {
+        question: "Which technology enables seamless handover between cellular base stations?",
+        options: [
+            "MIMO",
+            "Beamforming",
+            "Soft handoff",
+            "Carrier aggregation"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the primary challenge of mmWave frequencies in 5G?",
+        options: [
+            "High power consumption",
+            "Limited range and poor penetration",
+            "High cost",
+            "Interference issues"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which cellular technology uses time slots to separate user communications?",
+        options: [
+            "CDMA",
+            "FDMA",
+            "TDMA",
+            "OFDMA"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What does eMBB stand for in 5G use cases?",
+        options: [
+            "Enhanced Mobile Broadband",
+            "Extended Mobile Bandwidth",
+            "Efficient Mobile Broadcasting",
+            "Enhanced Mobile Broadcasting"
+        ],
+        correct: 0,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which generation of cellular networks first supported global roaming?",
+        options: [
+            "1G",
+            "2G",
+            "3G",
+            "4G"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the primary advantage of small cells in cellular networks?",
+        options: [
+            "Lower cost",
+            "Better coverage in high-density areas",
+            "Reduced power consumption",
+            "Simplified network management"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which technology enables ultra-reliable low-latency communication (URLLC) in 5G?",
+        options: [
+            "Massive MIMO",
+            "Network slicing",
+            "Beamforming",
+            "Carrier aggregation"
+        ],
+        correct: 1,
+        difficulty: "advanced"
+    },
+    {
+        question: "What is the typical cell size in a macrocell cellular network?",
+        options: [
+            "10-100 meters",
+            "1-2 kilometers",
+            "5-35 kilometers",
+            "50-100 kilometers"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which cellular technology allows multiple users to share the same frequency simultaneously?",
+        options: [
+            "FDMA",
+            "TDMA",
+            "CDMA",
+            "AMPS"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What does HSPA stand for in 3G networks?",
+        options: [
+            "High Speed Packet Access",
+            "High Speed Protocol Access",
+            "High Speed Phone Access",
+            "High Speed Processing Access"
+        ],
+        correct: 0,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which frequency band is commonly used for LTE networks?",
+        options: [
+            "700 MHz",
+            "1800 MHz",
+            "2100 MHz",
+            "All of the above"
+        ],
+        correct: 3,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the primary benefit of Massive MIMO in 5G networks?",
+        options: [
+            "Reduced cost",
+            "Increased capacity and spectral efficiency",
+            "Better battery life",
+            "Simplified deployment"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+
+    // Mobile Operating Systems (76-100)
+    {
+        question: "Which company developed the Android operating system?",
+        options: [
+            "Apple",
+            "Microsoft",
+            "Google",
+            "Samsung"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the kernel used in Android operating system?",
+        options: [
+            "Windows NT",
+            "Linux",
+            "Unix",
+            "FreeBSD"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which programming language is primarily used for iOS app development?",
+        options: [
+            "Java",
+            "Swift",
+            "C++",
+            "Python"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the name of Apple's mobile operating system?",
+        options: [
+            "macOS",
+            "iOS",
+            "watchOS",
+            "tvOS"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+    {
+        question: "Which mobile operating system is based on the Linux kernel?",
+        options: [
+            "iOS",
+            "Windows Phone",
+            "Android",
+            "BlackBerry OS"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "What is the name of Android's application framework?",
+        options: [
+            "Dalvik",
+            "Android Runtime (ART)",
+            "Application Framework Layer",
+            "Native Development Kit"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which iOS feature allows apps to continue running in the background?",
+        options: [
+            "Multitasking",
+            "Background App Refresh",
+            "Push Notifications",
+            "Handoff"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What replaced the Dalvik runtime in Android?",
+        options: [
+            "Java Virtual Machine",
+            "Android Runtime (ART)",
+            "Native Development Kit",
+            "Zygote"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which file format is used for iOS app distribution?",
+        options: [
+            ".apk",
+            ".ipa",
+            ".exe",
+            ".dmg"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the primary programming language for Android app development?",
+        options: [
+            "Swift",
+            "Objective-C",
+            "Java/Kotlin",
+            "C#"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "Which Android component is responsible for managing app permissions?",
+        options: [
+            "Activity Manager",
+            "Package Manager",
+            "Permission Manager",
+            "Security Manager"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the name of iOS's voice assistant?",
+        options: [
+            "Cortana",
+            "Google Assistant",
+            "Siri",
+            "Alexa"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "Which Android version introduced material design?",
+        options: [
+            "KitKat (4.4)",
+            "Lollipop (5.0)",
+            "Marshmallow (6.0)",
+            "Nougat (7.0)"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the minimum iOS version required for SwiftUI development?",
+        options: [
+            "iOS 11",
+            "iOS 12",
+            "iOS 13",
+            "iOS 14"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which Android component handles inter-process communication?",
+        options: [
+            "Intent",
+            "Binder",
+            "Service",
+            "Broadcast Receiver"
+        ],
+        correct: 1,
+        difficulty: "advanced"
+    },
+    {
+        question: "What is the default file system used by iOS?",
+        options: [
+            "NTFS",
+            "ext4",
+            "APFS",
+            "FAT32"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which Android API level introduced runtime permissions?",
+        options: [
+            "API 21 (Lollipop)",
+            "API 23 (Marshmallow)",
+            "API 24 (Nougat)",
+            "API 26 (Oreo)"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the name of Android's package manager?",
+        options: [
+            "APK Manager",
+            "Package Manager",
+            "Application Manager",
+            "Install Manager"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which iOS framework is used for creating user interfaces?",
+        options: [
+            "UIKit",
+            "Core Data",
+            "Core Graphics",
+            "Foundation"
+        ],
+        correct: 0,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the purpose of Android's Zygote process?",
+        options: [
+            "Managing system resources",
+            "Pre-loading common classes and resources for app startup",
+            "Handling network communications",
+            "Managing user interface"
+        ],
+        correct: 1,
+        difficulty: "advanced"
+    },
+    {
+        question: "Which iOS feature allows secure storage of sensitive information?",
+        options: [
+            "Core Data",
+            "Keychain Services",
+            "User Defaults",
+            "File System"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the primary difference between Activities and Fragments in Android?",
+        options: [
+            "Activities are for tablets, Fragments for phones",
+            "Activities represent screens, Fragments are reusable UI components",
+            "Activities are newer than Fragments",
+            "No significant difference"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which tool is used for iOS app performance analysis?",
+        options: [
+            "Xcode Profiler",
+            "Instruments",
+            "Activity Monitor",
+            "Performance Analyzer"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "What is the purpose of Android's Manifest file?",
+        options: [
+            "Storing app data",
+            "Defining app configuration and permissions",
+            "Managing user interface",
+            "Handling network requests"
+        ],
+        correct: 1,
+        difficulty: "intermediate"
+    },
+    {
+        question: "Which iOS deployment target allows the widest device compatibility?",
+        options: [
+            "Latest iOS version",
+            "iOS version from 2 years ago",
+            "iOS version from 3-4 years ago",
+            "Original iOS version"
+        ],
+        correct: 2,
+        difficulty: "intermediate"
+    },
+
+    // Mobile App Development (101-125)
+    {
+        question: "What is the primary advantage of native app development?",
+        options: [
+            "Lower development cost",
+            "Faster development time",
+            "Better performance and platform integration",
+            "Single codebase for all platforms"
+        ],
+        correct: 2,
+        difficulty: "basic"
+    },
+    {
+        question: "Which approach allows developers to write code once and deploy to multiple platforms?",
+        options: [
+            "Native development",
+            "Cross-platform development",
+            "Web-only development",
+            "Server-side development"
+        ],
+        correct: 1,
+        difficulty: "basic"
+    },
+            {
+                question: "Which protocol is commonly used for mobile app communication with servers?",
+                options: [
+                    "FTP",
+                    "SMTP",
+                    "HTTP/HTTPS",
+                    "SNMP"
+                ],
+                correct: 2,
+                difficulty: "basic"
+            },
+            {
+                question: "What is the main purpose of a mobile operating system?",
+                options: [
+                    "To provide internet connectivity",
+                    "To manage hardware and software resources",
+                    "To store user data",
+                    "To provide security only"
+                ],
+                correct: 1,
+                difficulty: "basic"
+            },
+            {
+                question: "Which company developed the Android operating system?",
+                options: [
+                    "Apple",
+                    "Microsoft",
+                    "Google",
+                    "Samsung"
+                ],
+                correct: 2,
+                difficulty: "basic"
+            },
+            {
+                question: "What does GPS stand for?",
+                options: [
+                    "Global Positioning Service",
+                    "Global Position System",
+                    "Global Positioning System",
+                    "General Positioning Service"
+                ],
+                correct: 2,
+                difficulty: "basic"
+            },
+            {
+                question: "Which wireless technology has the shortest range?",
+                options: [
+                    "Wi-Fi",
+                    "Bluetooth",
+                    "Cellular",
+                    "NFC"
+                ],
+                correct: 3,
+                difficulty: "basic"
+            },
+            {
+                question: "What is the main characteristic of mobile computing?",
+                options: [
+                    "High processing power",
+                    "Large storage capacity",
+                    "Mobility and wireless connectivity",
+                    "Low cost"
+                ],
+                correct: 2,
+                difficulty: "basic"
+            },
+            {
+                question: "Which mobile app development approach uses web technologies?",
+                options: [
+                    "Native development",
+                    "Hybrid development",
+                    "Cross-platform development",
+                    "Server-side development"
+                ],
+                correct: 1,
+                difficulty: "basic"
+            },
+            {
+                question: "What is the primary function of a mobile device's baseband processor?",
+                options: [
+                    "Graphics processing",
+                    "Audio processing",
+                    "Wireless communication",
+                    "User interface"
+                ],
+                correct: 2,
+                difficulty: "basic"
+            },
+            {
+                question: "Which technology enables contactless payments on mobile devices?",
+                options: [
+                    "Bluetooth",
+                    "Wi-Fi",
+                    "NFC",
+                    "GPS"
+                ],
+                correct: 2,
+                difficulty: "basic"
+            },
+            {
+                question: "What does the term 'responsive design' mean in mobile web development?",
+                options: [
+                    "Fast loading websites",
+                    "Websites that adapt to different screen sizes",
+                    "Interactive websites",
+                    "Secure websites"
+                ],
+                correct: 1,
+                difficulty: "basic"
+            },
+            {
+                question: "Which mobile network technology provides the highest data speeds?",
+                options: [
+                    "3G",
+                    "4G LTE",
+                    "5G",
+                    "2G"
+                ],
+                correct: 2,
+                difficulty: "basic"
+            },
+            {
+                question: "What is the main advantage of cloud computing for mobile devices?",
+                options: [
+                    "Better graphics",
+                    "Longer battery life",
+                    "Access to remote storage and processing power",
+                    "Faster local processing"
+                ],
+                correct: 2,
+                difficulty: "basic"
+            },
+            {
+                question: "Which programming language is primarily used for iOS app development?",
+                options: [
+                    "Java",
+                    "Swift",
+                    "C++",
+                    "Python"
+                ],
+                correct: 1,
+                difficulty: "basic"
+            },
+            {
+                question: "What does API stand for in mobile development?",
+                options: [
+                    "Application Programming Interface",
+                    "Advanced Programming Interface",
+                    "Application Process Interface",
+                    "Advanced Process Interface"
+                ],
+                correct: 0,
+                difficulty: "basic"
+            },
+            {
+                question: "Which factor most affects mobile device battery life?",
+                options: [
+                    "Screen brightness and wireless connectivity",
+                    "Storage capacity",
+                    "Operating system version",
+                    "Device color"
+                ],
+                correct: 0,
+                difficulty: "basic"
+            },
+            {
+                question: "What is the primary security concern with mobile devices?",
+                options: [
+                    "Hardware failure",
+                    "Data theft and privacy breaches",
+                    "Slow performance",
+                    "Limited storage"
+                ],
+                correct: 1,
+                difficulty: "basic"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let answered = false;
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            const questionCounter = document.getElementById('questionCounter');
+            const questionText = document.getElementById('questionText');
+            const optionsContainer = document.getElementById('optionsContainer');
+            const nextBtn = document.getElementById('nextBtn');
+            const feedback = document.getElementById('feedback');
+
+            questionCounter.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+            questionText.textContent = question.question;
+            
+            // Update progress bar
+            const progressFill = document.getElementById('progressFill');
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            progressFill.style.width = progress + '%';
+
+            // Clear options
+            optionsContainer.innerHTML = '';
+            
+            // Create option buttons
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+
+            // Reset state
+            selectedAnswer = null;
+            answered = false;
+            nextBtn.disabled = true;
+            feedback.classList.remove('show');
+        }
+
+        function selectAnswer(index) {
+            if (answered) return;
+
+            selectedAnswer = index;
+            const options = document.querySelectorAll('.option');
+            const question = questions[currentQuestion];
+            const feedback = document.getElementById('feedback');
+            const nextBtn = document.getElementById('nextBtn');
+
+            // Clear previous selections
+            options.forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+
+            // Mark selected answer
+            options[index].classList.add('selected');
+
+            // Show correct answer and feedback
+            answered = true;
+            const isCorrect = index === question.correct;
+            
+            if (isCorrect) {
+                score++;
+                options[index].classList.add('correct');
+                feedback.textContent = 'Correct! Well done.';
+                feedback.className = 'feedback correct show';
+            } else {
+                options[index].classList.add('incorrect');
+                options[question.correct].classList.add('correct');
+                feedback.textContent = `Incorrect. The correct answer is: ${question.options[question.correct]}`;
+                feedback.className = 'feedback incorrect show';
+            }
+
+            nextBtn.disabled = false;
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const quizContent = document.getElementById('quizContent');
+            const results = document.getElementById('results');
+            const finalScore = document.getElementById('finalScore');
+            const scoreText = document.getElementById('scoreText');
+
+            quizContent.style.display = 'none';
+            results.style.display = 'block';
+
+            const percentage = Math.round((score / questions.length) * 100);
+            finalScore.textContent = `${score}/${questions.length}`;
+
+            if (percentage >= 90) {
+                scoreText.textContent = 'Excellent! You have mastered mobile computing basics!';
+                scoreText.style.color = '#28a745';
+            } else if (percentage >= 70) {
+                scoreText.textContent = 'Great job! You have a good understanding of mobile computing.';
+                scoreText.style.color = '#17a2b8';
+            } else if (percentage >= 50) {
+                scoreText.textContent = 'Good effort! Consider reviewing some mobile computing concepts.';
+                scoreText.style.color = '#ffc107';
+            } else {
+                scoreText.textContent = 'Keep studying! Mobile computing has many interesting concepts to explore.';
+                scoreText.style.color = '#dc3545';
+            }
+        }
+
+        function quitQuiz() {
+            if (confirm('Are you sure you want to quit the quiz?')) {
+                showResults();
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedAnswer = null;
+            answered = false;
+
+            const quizContent = document.getElementById('quizContent');
+            const results = document.getElementById('results');
+
+            quizContent.style.display = 'block';
+            results.style.display = 'none';
+
+            loadQuestion();
+        }
+
+        // Initialize quiz
+        loadQuestion();
+    </script>
+</body>
+</html>
